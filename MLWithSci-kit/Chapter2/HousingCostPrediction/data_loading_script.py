@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from zlib import crc32
 from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
+from sklearn.preprocessing import Imputer
 
 
 #Start Download routine for SC housing price data
@@ -76,11 +77,27 @@ attributes = ["median_house_value",
               "total_rooms",
               "housing_median_age"]
 
+#Normalize certain housing values
+
+housing["rooms_per_household"] = housing["total_rooms"]/housing["housholds"]
+housing["bedrooms_per_room"] = housing["total_bedrooms"]/housing["total_rooms"]
+housing["population_per_household"] = housing["population"]/housing["housholds"]
+
+housing = strat_train_set.drop("median_house_value",axis=1)
+housing_labels = strat_train_set["median_house_value"].copy()
 
 
+#housing.dropna(subset=["total_bedrooms"])
+imputer = Imputer(strategy ="median")
 
 
+housing_num = housing.drop("ocean_proximity",axis=1)
 
+imputer.fit(housing_num)
+
+X = imputer.transform(housing_num)
+
+housing_tr = pd.DataFrame(X,columns=housing_num.columns)
 
 
 
