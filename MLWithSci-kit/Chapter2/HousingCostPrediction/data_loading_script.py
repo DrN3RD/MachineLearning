@@ -3,6 +3,7 @@ import os
 import tarfile
 from six.moves import urllib
 import pandas as pd
+from pandas.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 import numpy as np
 from zlib import crc32
@@ -68,11 +69,14 @@ for set_ in (strat_train_set,strat_test_set):
 
 housing = strat_train_set.copy() # copy of original file so that we can manipulate it consequence free
 
-housing.plot(kind="scatter", x="longitude", y="latitude",alpha=0.1)
-plt.show()
+
+corr_matrix = housing.corr()
+attributes = ["median_house_value",
+              "median_income",
+              "total_rooms",
+              "housing_median_age"]
 
 
-#print(strat_test_set["income_cat"].value_counts() /len(strat_test_set))
 
 
 
@@ -82,6 +86,20 @@ plt.show()
 
 
 #----------------GARBAGE COLLECTOR---------------------------#
+#scatter_matrix(housing[attributes],figsize=(12,8))
+
+#housing.plot(kind="scatter",x="median_income",y="median_house_value",alpha=0.1)
+#plt.show()
+#print(corr_matrix["median_house_value"].sort_values(ascending=False))
+
+
+#print(strat_test_set["income_cat"].value_counts() /len(strat_test_set))
+
+#housing.plot(kind="scatter", x="longitude", y="latitude",alpha=0.4,s=housing["population"]/100, label = "population", figsize=(10,7),
+            # c="median_house_value", cmap=plt.get_cmap("jet"),colorbar = True)
+#plt.legend()
+#plt.show()
+
 #housing["income_cat"].hist()
 #plt.show()
 #train_set,test_set = train_test_split(housing, test_size = 0.2, random_state = 42)
