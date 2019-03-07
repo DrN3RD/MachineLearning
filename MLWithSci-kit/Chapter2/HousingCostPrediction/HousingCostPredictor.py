@@ -3,6 +3,7 @@
 
 # Import files
 import os
+import csv
 import tarfile
 from six.moves import urllib
 import pandas as pd
@@ -13,6 +14,7 @@ from sklearn.model_selection import train_test_split, StratifiedShuffleSplit
 from zlib import crc32
 from sklearn.preprocessing import Imputer
 from sklearn.impute import SimpleImputer
+
 
 
 
@@ -71,5 +73,10 @@ imputer.fit(housing_num)
 X= imputer.transform(housing_num)
 housing_tr = pd.DataFrame(X,columns=housing_num.columns)
 
-print(housing_tr["total_bedrooms"])
+
+#file = open("testfile.txt","w")
+#for i in range(16511):
+#    file.write(str(housing_tr["total_bedrooms"][i]) + "\n")
+    #file.write()
+#file.close()
 
