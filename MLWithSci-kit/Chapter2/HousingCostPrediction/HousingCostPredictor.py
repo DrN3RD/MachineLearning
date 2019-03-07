@@ -65,11 +65,11 @@ imputer = SimpleImputer(missing_values=np.nan,strategy = "median")
 housing = strat_train_set.drop("median_house_value",axis=1)
 housing_labels = strat_train_set["median_house_value"].copy()
 
-#median = housing["total_bedrooms"].median()
-#housing["total_bedrooms"].fillna(median,inplace=True)
+
 housing_num = housing.drop("ocean_proximity",axis=1)
-#housing.dropna(subset=["total_bedrooms"])
-SimpleImputer.fit(housing_num)
-#X= imputer.transform(housing_num)
-#housing_tr = pd.DataFrame(X,columns=housing_num.columns)
+imputer.fit(housing_num)
+X= imputer.transform(housing_num)
+housing_tr = pd.DataFrame(X,columns=housing_num.columns)
+
+print(housing_tr["total_bedrooms"])
 
