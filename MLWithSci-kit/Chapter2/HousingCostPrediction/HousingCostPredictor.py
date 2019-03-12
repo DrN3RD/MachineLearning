@@ -16,6 +16,16 @@ from sklearn.preprocessing import Imputer,CategoricalEncoder,OrdinalEncoder,OneH
 from sklearn.impute import SimpleImputer
 from sklearn.base import BaseEstimator,TransformerMixin
 from sklearn.pipeline import Pipeline,FeatureUnion
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.externals import joblib
+from sklearn.model_selection import GridSearchCV
+
+
+
 
 
 
@@ -38,7 +48,10 @@ def load_housing_data(housing_path=HOUSING_PATH):
     csv_path = os.path.join(housing_path,"housing.csv")
     return pd.read_csv(csv_path)
 
-
+def display_scores(scores):
+    print("Scores:",scores)
+    print("Mean:",scores.mean())
+    print("Standard Deviation:", scores.std())
 
 #fetch_housing_data()
 housing = load_housing_data()
@@ -148,9 +161,84 @@ full_pipeline = FeatureUnion(transformer_list=[
     ("cat_pipeline",cat_pipeline),
 ])
 
-
 housing_prepared = full_pipeline.fit_transform(housing)
 
+
+#Start model training and testing
+
+lin_reg = LinearRegression()
+lin_reg.fit(housing_prepared,housing_labels)
+
+#now we try it on some training sets
+some_data = housing.iloc[:5]
+some_labels = housing_labels.iloc[:5]
+some_data_prepared = full_pipeline.transform(some_data)
+#print("Predictions", lin_reg.predict(some_data_prepared))
+#print("Labels:" list(some_labels))
+
+housing_predictions = lin_reg.predict(housing_prepared)
+lin_mse = mean_squared_error(housing_labels,housing_predictions)
+lin_rmse = np.sqrt(lin_mse)
+#print(lin_rmse)
+
+tree_reg = DecisionTreeRegressor()
+tree_reg.fit(housing_prepared,housing_labels)
+
+housing_predictions = tree_reg.predict((housing_prepared))
+tree_mse = mean_squared_error(housing_labels,housing_predictions)
+tree_rmse = np.sqrt(tree_mse)
+
+scores = cross_val_score(tree_reg,housing_prepared,housing_labels,scoring="neg_mean_squared_error",cv=10)
+tree_rmse_scores = np.sqrt(-scores)
+
+lin_scores = cross_val_score(lin_reg,housing_prepared,housing_labels,scoring="neg_mean_squared_error",cv=10)
+lin_rmse_scores = np.sqrt(-lin_scores)
+display_scores(lin_rmse_scores)
+print("-----------------------------")
+display_scores(tree_rmse_scores)
+
+forest_reg = RandomForestRegressor()
+forest_reg.fit(housing_prepared,housing_labels)
+housing_predictions=forest_reg.predict((housing_prepared))
+forest_mse = mean_squared_error(housing_labels,housing_predictions)
+forest_rmse = np.sqrt(forest_mse)
+
+forest_scores = cross_val_score(forest_reg,housing_prepared,housing_labels,scoring="neg_mean_squared_error",cv=10)
+forest_rmse_scores = np.sqrt(-scores)
+
+print("------------")
+
+display_scores(forest_rmse_scores)
+
+#joblib.dump(my_model, "my_model.pkl")
+
+#my_model_loaded = joblib.load("my_model_pkl")
+
+param_grid = [
+    {'n_estimators':[3,10,30],'max_features':[2,4,6,8]},
+    {'bootstrap':[False],'n_estimators':[3,10],'max_features':[2,3,4]},
+]
+
+forest_reg = RandomForestRegressor()
+grid_search = GridSearchCV(forest_reg,param_grid,cv=5,scoring='neg_mean_squared_error')
+grid_search.fit(housing_prepared,housing_labels)
+cvres = grid_search.cv_results_
+for mean_score,params in zip(cvres["mean_test_score"],cvres["params"]):
+    print(np.sqrt(-mean_score),params)
+
+feature_importances = grid_search.best_estimator_.feature_importances_
+print(feature_importances)
+
+final_model = grid_search.best_estimator_
+X_test = strat_test_set.drop("median_house_value",axis =1)
+y_test = strat_test_set["median_house_value"].copy()
+
+X_test_prepared = full_pipeline.transform(X_test)
+
+final_predictions = final_model.predict(X_test_prepared)
+
+final_mse = mean_squared_error(y_test,final_predictions)
+final_rmse = np.sqrt(final_mse)
 
 #file = open("testfile.txt","w")
 #for i in range(16511):
